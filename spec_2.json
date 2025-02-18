@@ -1,0 +1,115 @@
+{
+  "globalDeadline": "2024-12-31 23:59:59",
+  "currentPosition": null,
+  "states": {
+    "featCool_2": {
+      "desiredPhysicalProperty": "featCool_2",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": false,
+      "finalState": false
+    },
+    "start": {
+      "desiredPhysicalProperty": "start",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": true,
+      "finalState": false
+    },
+    "featPrint_2": {
+      "desiredPhysicalProperty": "featPrint_2",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": false,
+      "finalState": false
+    },
+    "end": {
+      "desiredPhysicalProperty": "end",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": false,
+      "finalState": true
+    }
+  },
+  "transitions": {
+    "runfeatCool_2end": {
+      "parent": "featCool_2",
+      "child": "end",
+      "programCall": {
+        "partToStorage": {
+          "possibleResources": [
+            "Rollout_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runstartfeatPrint_2": {
+      "parent": "start",
+      "child": "featPrint_2",
+      "programCall": {
+        "printing_2": {
+          "possibleResources": [
+            "Prusa_i3_MK3S"
+          ]
+        },
+        "printing_3": {
+          "possibleResources": [
+            "Prusa_MK4"
+          ]
+        },
+        "initializing_2": {
+          "possibleResources": [
+            "Prusa_MK4"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runfeatPrint_2featCool_2": {
+      "parent": "featPrint_2",
+      "child": "featCool_2",
+      "programCall": {
+        "cooling_2": {
+          "possibleResources": [
+            "Cooling_Machine_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    }
+  }
+}
