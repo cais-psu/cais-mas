@@ -1,0 +1,187 @@
+{
+  "globalDeadline": "2024-12-31 23:59:59",
+  "currentPosition": null,
+  "states": {
+    "featCool_1": {
+      "desiredPhysicalProperty": "featCool_1",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": false,
+      "finalState": false
+    },
+    "start": {
+      "desiredPhysicalProperty": "start",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": true,
+      "finalState": false
+    },
+    "featPrint_1": {
+      "desiredPhysicalProperty": "featPrint_1",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": false,
+      "finalState": false
+    },
+    "end": {
+      "desiredPhysicalProperty": "end",
+      "guards": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "initialState": false,
+      "finalState": true
+    }
+  },
+  "transitions": {
+    "runfeatCool_1end": {
+      "parent": "featCool_1",
+      "child": "end",
+      "programCall": {
+        "partToStorage": {
+          "possibleResources": [
+            "Rollout_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runstartfeatCool_1": {
+      "parent": "start",
+      "child": "featCool_1",
+      "programCall": {
+        "cooling_1": {
+          "possibleResources": [
+            "Cooling_Machine_1"
+          ]
+        },
+        "cooling_2": {
+          "possibleResources": [
+            "Cooling_Machine_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runstartfeatPrint_1": {
+      "parent": "start",
+      "child": "featPrint_1",
+      "programCall": {
+        "printing_1": {
+          "possibleResources": [
+            "Prusa_i3_MK3S"
+          ]
+        },
+        "printing_2": {
+          "possibleResources": [
+            "Prusa_i3_MK3S"
+          ]
+        },
+        "printing_3": {
+          "possibleResources": [
+            "Prusa_MK4"
+          ]
+        },
+        "initializing_2": {
+          "possibleResources": [
+            "Prusa_MK4"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runstartend": {
+      "parent": "start",
+      "child": "end",
+      "programCall": {
+        "partToStorage": {
+          "possibleResources": [
+            "Rollout_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runfeatPrint_1featCool_1": {
+      "parent": "featPrint_1",
+      "child": "featCool_1",
+      "programCall": {
+        "cooling_1": {
+          "possibleResources": [
+            "Cooling_Machine_1"
+          ]
+        },
+        "cooling_2": {
+          "possibleResources": [
+            "Cooling_Machine_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    },
+    "runfeatPrint_1end": {
+      "parent": "featPrint_1",
+      "child": "end",
+      "programCall": {
+        "partToStorage": {
+          "possibleResources": [
+            "Rollout_1"
+          ]
+        }
+      },
+      "invariants": {
+        "localDeadlineConstraint": null,
+        "customerDeadlineConstraint": null,
+        "qualityConstraint": null
+      },
+      "resets": {
+        "powerUsage": null
+      }
+    }
+  }
+}
