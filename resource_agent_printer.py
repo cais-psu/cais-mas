@@ -43,7 +43,12 @@ class PrinterRA(ResourceAgent):
             
             #Start Operation
             elif "Operate" in data.decode():
-                self.executeTask()
+                self.operate()
+
+            #Kill the use of the file
+            elif "Completed" in data.decode():
+                self.needed_flag.clear()
+
 
 
     # Hardwar specific init functin
@@ -72,10 +77,15 @@ class PrinterRA(ResourceAgent):
         pass
 
     def executeTask(self):
+        
         self.idle_flag.clear()
         self.running_flag.set()
         print('print action')
-        time.sleep(5)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 5:
+            pass
+        
         self.completed_flag.set()
         pass
     
@@ -95,7 +105,10 @@ if __name__ == "__main__":
        
      # Keep the script alive **only while idle_flag is set**
     while ra.needed_flag.is_set():
-        time.sleep(1)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 1:
+            pass
    
 
 '''

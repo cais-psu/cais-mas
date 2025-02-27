@@ -135,17 +135,14 @@ class ProductAgent:
         """
         #created different agents for testing purposes
         # Time buffer
-        time.sleep(.5)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 1:
+            pass
 
         # Continues to main operation using the state machine
         self.operate("C:/Users/zekam/Documents/PennStateAgentSystem/spec_1.json")
         pass            
-
-    def invoke_process_on_resource(self):
-        """
-        
-        """
-        pass
 
     def operate(self, directory):
         """
@@ -183,7 +180,10 @@ class ProductAgent:
             self.query_flag.set()
             # queries the resource adds a buffer and then clears the query flag
             self.queryResource(i)
-            time.sleep(.05)
+            start_time = time.perf_counter()
+
+            while time.perf_counter() - start_time < 1:
+                pass
             self.query_flag.clear()
 
 
@@ -250,7 +250,10 @@ class ProductAgent:
 
             # Function to continuously query the RA status in a separate thread
             while self.operating_finished.is_set() == False:
-                time.sleep(1)
+                start_time = time.perf_counter()
+
+                while time.perf_counter() - start_time < 1:
+                    pass
                 self.queryStatus(currentRA)
 
             #changes to next state
@@ -272,7 +275,11 @@ class ProductAgent:
 
         # Waits for the Operating flag to clear when requesting status, so continually asks until changed
         while self.operating_finished.is_set() == False:
-            time.sleep(1)
+            start_time = time.perf_counter()
+
+            while time.perf_counter() - start_time < 1:
+                pass
+
             self.queryStatus(robotRA)
 
         print('Move Action has ended')
@@ -323,6 +330,10 @@ class ProductAgent:
         """
         
         """
+        message = "Completed"
+        for agents in self.ra_list:
+            self.pa_udp_server_socket.sendto(message.encode(), agents)
+
         print("Done!")
         pass
         

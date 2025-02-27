@@ -37,14 +37,27 @@ class CooloutBuffer(ResourceAgent):
 
             #Start Operation
             elif "Operate" in data.decode():
-                self.executeTask()
+                self.operate()
+
+            #Kill the use of the file
+            elif "Completed" in data.decode():
+                self.needed_flag.clear()
 
     def executeTask(self):
         self.idle_flag.clear()
         self.running_flag.set()
         print('coolout')
-        time.sleep(10)
+
+        start_time = time.perf_counter()
+        while time.perf_counter() - start_time < 5:
+            pass  # Non-blocking loop, allows other threads to run
+
+        print("Coolout operation completed.")
+        self.running_flag.clear()
         self.completed_flag.set()
+        self.idle_flag.set()
+        
+
         pass
 
     #--------------------------------------#
@@ -57,5 +70,8 @@ if __name__ == "__main__":
 
     # Keep the script alive **only while idle_flag is set**
     while ra.needed_flag.is_set():
-        time.sleep(1)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 1:
+            pass
    

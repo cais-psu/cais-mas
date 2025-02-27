@@ -108,9 +108,13 @@ class ResourceAgent:
         self.ra_udp_client_socket.sendto(message.encode(), self.pa_udp_server_address)
 
     def operate(self):
-        self.running_flag.set()
-
-        self.executeTask()
+        "Starts executeTask() in a separate thread if not already running."
+        if not self.running_flag.is_set():
+            self.running_flag.set()
+            self.task_thread = Thread(target=self.executeTask, daemon=True)
+            self.task_thread.start()
+        else:
+            print("Task is already running!")
 
         pass
 
@@ -127,7 +131,7 @@ class ResourceAgent:
         self.idle_flag.set()
 
         self.send_msg_to_pa(False, "Task Completed")
-        print('here')
+
         pass
 
 

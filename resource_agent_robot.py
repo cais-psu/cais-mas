@@ -42,15 +42,20 @@ class RobotArmRA(ResourceAgent):
 
             #Start Operation
             elif "Operate" in data.decode():
-                self.executeTask()
+                self.operate('none')
             
             ## The place to move 
             # to cooling location
             elif 'coolingLocation' in data.decode():
-                self.handlingPrinterToCoolout()
+                self.operate('coolingLocation')
 
             elif 'rolloutLocation' in data.decode():
-                self.handlingCooloutToRollout()
+                self.operate('rolloutLocation')
+
+            #Kill the use of the file
+            elif "Completed" in data.decode():
+                self.needed_flag.clear()
+
 
 
     # Robot specific setup functions:
@@ -66,11 +71,46 @@ class RobotArmRA(ResourceAgent):
     # PROCESS FUNCTIONS (HARWARE CONTROL)  #
     #--------------------------------------#
 
+    def operate(self, area):
+        "Starts executeTask() in a separate thread if not already running."
+        
+        if area == 'coolingLocation':
+
+            if not self.running_flag.is_set():
+                self.running_flag.set()
+                self.task_thread = Thread(target=self.handlingPrinterToCoolout, daemon=True)
+                self.task_thread.start()
+            else:
+                print("Task is already running!")
+
+        elif area == 'rolloutLocation':
+
+            if not self.running_flag.is_set():
+                self.running_flag.set()
+                self.task_thread = Thread(target=self.handlingCooloutToRollout, daemon=True)
+                self.task_thread.start()
+            else:
+                print("Task is already running!")
+
+        else:
+
+            if not self.running_flag.is_set():
+                self.running_flag.set()
+                self.task_thread = Thread(target=self.operate, daemon=True)
+                self.task_thread.start()
+            else:
+                print("Task is already running!")
+
+        pass
+
     def handlingPrinterToCoolout(self):
         self.idle_flag.clear()
         self.running_flag.set()
         print('handling printer to coolout')
-        time.sleep(5)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 5:
+            pass
         self.completed_flag.set()
         pass
 
@@ -78,18 +118,24 @@ class RobotArmRA(ResourceAgent):
         self.idle_flag.clear()
         self.running_flag.set()
         print('handling coolout to rollout')
-        time.sleep(5)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 5:
+            pass
         self.completed_flag.set()
         pass
 
     def executeTask(self):
         self.idle_flag.clear()
         self.running_flag.set()
-        time.sleep(5)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 5:
+            pass
         self.completed_flag.set()
         pass
 
-    def move_process(self):
+    def move_process(self,location):
         # Position is (x,y,z,roll, pitch, yaw) in units [mm] and [deg]
         
         '''
@@ -115,5 +161,8 @@ if __name__ == "__main__":
 
         # Keep the script alive **only while idle_flag is set**
     while ra.needed_flag.is_set():
-        time.sleep(1)
+        start_time = time.perf_counter()
+
+        while time.perf_counter() - start_time < 1:
+            pass
    
