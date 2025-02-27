@@ -6,7 +6,7 @@ from threading import Thread
 # See: https://docs.ufactory.cc/xarm_python_sdk/2.-linear-motion
 # See: Yonghan's notes, and shared on google-drive
 # Note: Currently xarm-python-sdk is installed via pip in this venv
-# from xarm.wrapper import XArmAPI
+from xarmlib.wrapper import XArmAPI
 from resource_agent import ResourceAgent
 
 
@@ -18,7 +18,21 @@ class RobotArmRA(ResourceAgent):
 
     def __init__(self, ra_port : int):
         super().__init__(ra_port)
+        self.robot_ip = "192.168.1.240"
+
     
+    def ra_run_autimatic(self):
+        '''
+        The autimatic control loop where their is preset messages are sent by the
+        ra to the pa. This funtion is the ra's main thread (proccessing the pa's incoming
+        messages happens in a seperate thread)
+        '''
+        self.send_msg_to_pa(False,"Autimatic Setup of Machine complete")
+        self.setup_robot_connection()
+        time.sleep(.5)
+        
+        pass
+
     # ---------------------------------------#
     # GENERIC RESOURCE AGENT FUNCTIONS       #
     # ---------------------------------------#
@@ -61,10 +75,29 @@ class RobotArmRA(ResourceAgent):
     # Robot specific setup functions:
     def setup_robot_connection(self):
 
-        #self.arm=XArmAPI(self.robot_ip)
-        #self.arm.motion_enable(enable=True)
-        #self.arm.set_mode(0)
-        #self.arm.set_state(0)
+        self.arm = XArmAPI('192.168.1.240', baud_checkset=False)
+        
+        self.params = {
+            'grip_speed': 800,
+            'radius': -1,
+            'auto_enable': True,
+            'wait': True,
+            'speed': 180,
+            'acc': 10000,
+            'angle_speed': 20,
+            'angle_acc': 500,
+            'quit': False,
+        }
+
+        # Move the arm to the initial position
+        self.arm.set_position(x=250, y=-150, z=400, roll=180.0, pitch=0.0, yaw=0.0, 
+                              speed=self.params['speed'], mvacc=self.params['acc'], 
+                              radius=self.params['radius'], wait=True)
+
+        self.arm.motion_enable(enable=True)
+        self.arm.set_mode(0)
+        self.arm.set_state(0)
+
         pass
 
     #--------------------------------------#
@@ -73,7 +106,7 @@ class RobotArmRA(ResourceAgent):
 
     def operate(self, area):
         "Starts executeTask() in a separate thread if not already running."
-        
+
         if area == 'coolingLocation':
 
             if not self.running_flag.is_set():
@@ -104,24 +137,34 @@ class RobotArmRA(ResourceAgent):
         pass
 
     def handlingPrinterToCoolout(self):
-        self.idle_flag.clear()
+        
         self.running_flag.set()
+        self.idle_flag.clear()
         print('handling printer to coolout')
+
+        self.arm.set_position(0,300, 350,180,0,0)
+        self.arm.set_position(0,300, 250,180,0,0)
+
         start_time = time.perf_counter()
 
         while time.perf_counter() - start_time < 5:
             pass
+
         self.completed_flag.set()
         pass
 
     def handlingCooloutToRollout(self):
-        self.idle_flag.clear()
+        
         self.running_flag.set()
+        self.idle_flag.clear()
         print('handling coolout to rollout')
+ 
+        self.arm.set_position(300,0,350,180,0,0) 
+        self.arm.set_position(300,0,250,180,0,0) 
         start_time = time.perf_counter()
-
         while time.perf_counter() - start_time < 5:
             pass
+
         self.completed_flag.set()
         pass
 
