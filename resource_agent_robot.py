@@ -18,7 +18,8 @@ class RobotArmRA(ResourceAgent):
 
     def __init__(self, ra_port : int):
         super().__init__(ra_port)
-        self.robot_ip = "192.168.1.240"
+        self.robot_ip = "192.168.1.156"
+        self.arm
 
     
     def ra_run_autimatic(self):
@@ -74,15 +75,15 @@ class RobotArmRA(ResourceAgent):
 
     # Robot specific setup functions:
     def setup_robot_connection(self):
-
-        self.arm = XArmAPI('192.168.1.240', baud_checkset=False)
         
+        self.arm = XArmAPI('192.168.1.156', baud_checkset=False)
+
         self.params = {
             'grip_speed': 800,
             'radius': -1,
             'auto_enable': True,
             'wait': True,
-            'speed': 180,
+            'speed': 100,
             'acc': 10000,
             'angle_speed': 20,
             'angle_acc': 500,
@@ -97,6 +98,7 @@ class RobotArmRA(ResourceAgent):
         self.arm.motion_enable(enable=True)
         self.arm.set_mode(0)
         self.arm.set_state(0)
+        self.arm.set_gripper_position(850, speed=500)
 
         pass
 
@@ -142,12 +144,33 @@ class RobotArmRA(ResourceAgent):
         self.idle_flag.clear()
         print('handling printer to coolout')
 
-        self.arm.set_position(0,300, 350,180,0,0)
-        self.arm.set_position(0,300, 250,180,0,0)
+        self.arm.set_position(-21.7,304, 273.5,-179.4,-0.3,-0.2)
+        self.arm.set_position(-21.7,304, 147.9,-179.4,-0.3,-0.2)
+
+        # Currently some issues with the gripper, movement doesnt work 
+        #code = self.arm.set_gripper_mode(0)
+        #rint('set gripper mode: location mode, code={}'.format(code))
+        #code= self.arm.set_gripper_enable(True)
+        #print('set gripper enable, code={}'.format(code))
+        #self.arm.set_gripper_position(0, speed=500)
+
+        self.arm.set_position(-21.7,304, 273.5,-179.4,-0.3,-0.2)
+        self.arm.set_position(211.2,127.6, 272.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(399.2,-55.1, 78.8,-179.4,-0.3,-0.2)
+
+        #code = self.arm.set_gripper_mode(0)
+        #print('set gripper mode: location mode, code={}'.format(code))
+        #code= self.arm.set_gripper_enable(True)
+        #print('set gripper enable, code={}'.format(code))
+        #self.arm.set_gripper_position(850, speed=500)
+
+        self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
 
         start_time = time.perf_counter()
 
-        while time.perf_counter() - start_time < 5:
+        while time.perf_counter() - start_time < 20:
             pass
 
         self.completed_flag.set()
@@ -159,10 +182,32 @@ class RobotArmRA(ResourceAgent):
         self.idle_flag.clear()
         print('handling coolout to rollout')
  
-        self.arm.set_position(300,0,350,180,0,0) 
-        self.arm.set_position(300,0,250,180,0,0) 
+        self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(399.2,-55.1, 78.8,-179.4,-0.3,-0.2)
+
+        #code = self.arm.set_gripper_mode(0)
+        #rint('set gripper mode: location mode, code={}'.format(code))
+        #code= self.arm.set_gripper_enable(True)
+        #print('set gripper enable, code={}'.format(code))
+        #self.arm.set_gripper_position(0, speed=500)
+        
+        self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(315,-256.9, 299.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(100.8,-362.8, 299.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(100.8,-362.8, 73,-179.4,-0.3,-0.2)
+
+        #code = self.arm.set_gripper_mode(0)
+        #print('set gripper mode: location mode, code={}'.format(code))
+        #code= self.arm.set_gripper_enable(True)
+        #print('set gripper enable, code={}'.format(code))
+        #self.arm.set_gripper_position(850, speed=500)
+
+        self.arm.set_position(100.8,-362.8, 299.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
+
         start_time = time.perf_counter()
-        while time.perf_counter() - start_time < 5:
+
+        while time.perf_counter() - start_time < 20:
             pass
 
         self.completed_flag.set()

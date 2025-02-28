@@ -83,7 +83,7 @@ class PrinterRA(ResourceAgent):
         print('print action')
         start_time = time.perf_counter()
 
-        while time.perf_counter() - start_time < 5:
+        while time.perf_counter() - start_time < 20:
             pass
         
         self.completed_flag.set()
