@@ -8,6 +8,11 @@ from threading import Thread
 #from printrun import gcoder
 #from printrun.eventhandler import PrinterEventHandler
 
+Imports for printer control
+from printrun.printcore import printcore
+from printrun import gcoder
+from printrun.eventhandler import PrinterEventHandler
+
 from resource_agent import ResourceAgent
 
 

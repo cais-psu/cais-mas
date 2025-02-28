@@ -10,7 +10,6 @@ from xarmlib.wrapper import XArmAPI
 from resource_agent import ResourceAgent
 
 
-
 PA_IP = "127.0.0.1"
 PA_PORT = 50501
 
@@ -98,7 +97,8 @@ class RobotArmRA(ResourceAgent):
         self.arm.motion_enable(enable=True)
         self.arm.set_mode(0)
         self.arm.set_state(0)
-        self.arm.set_gripper_position(850, speed=500)
+
+        self.arm.open_lite6_gripper()
 
         pass
 
@@ -144,8 +144,8 @@ class RobotArmRA(ResourceAgent):
         self.idle_flag.clear()
         print('handling printer to coolout')
 
-        self.arm.set_position(-21.7,304, 273.5,-179.4,-0.3,-0.2)
-        self.arm.set_position(-21.7,304, 147.9,-179.4,-0.3,-0.2)
+        self.arm.set_position(-6.3,298, 273.5,-179.4,-0.3,-0.2)
+        self.arm.set_position(-6.3,298, 140.5,-179.4,-0.3,-0.2)
 
         # Currently some issues with the gripper, movement doesnt work 
         #code = self.arm.set_gripper_mode(0)
@@ -153,24 +153,30 @@ class RobotArmRA(ResourceAgent):
         #code= self.arm.set_gripper_enable(True)
         #print('set gripper enable, code={}'.format(code))
         #self.arm.set_gripper_position(0, speed=500)
+        time.sleep(3)
+        self.arm.close_lite6_gripper()
+        time.sleep(5)
 
-        self.arm.set_position(-21.7,304, 273.5,-179.4,-0.3,-0.2)
+        self.arm.set_position(-6.3,300.6, 273.5,-179.4,-0.3,-0.2)
         self.arm.set_position(211.2,127.6, 272.2,-179.4,-0.3,-0.2)
         self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
-        self.arm.set_position(399.2,-55.1, 78.8,-179.4,-0.3,-0.2)
+        self.arm.set_position(399.2,-55.1, 73,-179.4,-0.3,-0.2,wait=True)
 
+        time.sleep(3)
+        self.arm.open_lite6_gripper()
+        time.sleep(3)
         #code = self.arm.set_gripper_mode(0)
         #print('set gripper mode: location mode, code={}'.format(code))
         #code= self.arm.set_gripper_enable(True)
         #print('set gripper enable, code={}'.format(code))
         #self.arm.set_gripper_position(850, speed=500)
 
-        self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
+        self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2,wait=True)
         self.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
 
         start_time = time.perf_counter()
 
-        while time.perf_counter() - start_time < 20:
+        while time.perf_counter() - start_time < 25:
             pass
 
         self.completed_flag.set()
@@ -183,8 +189,11 @@ class RobotArmRA(ResourceAgent):
         print('handling coolout to rollout')
  
         self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
-        self.arm.set_position(399.2,-55.1, 78.8,-179.4,-0.3,-0.2)
+        self.arm.set_position(399.2,-55.1, 70,-179.4,-0.3,-0.2)
 
+        time.sleep(3)
+        self.arm.close_lite6_gripper()
+        time.sleep(2)
         #code = self.arm.set_gripper_mode(0)
         #rint('set gripper mode: location mode, code={}'.format(code))
         #code= self.arm.set_gripper_enable(True)
@@ -196,6 +205,9 @@ class RobotArmRA(ResourceAgent):
         self.arm.set_position(100.8,-362.8, 299.2,-179.4,-0.3,-0.2)
         self.arm.set_position(100.8,-362.8, 73,-179.4,-0.3,-0.2)
 
+        time.sleep(3)
+        self.arm.open_lite6_gripper()
+        time.sleep(3)
         #code = self.arm.set_gripper_mode(0)
         #print('set gripper mode: location mode, code={}'.format(code))
         #code= self.arm.set_gripper_enable(True)
@@ -207,7 +219,7 @@ class RobotArmRA(ResourceAgent):
 
         start_time = time.perf_counter()
 
-        while time.perf_counter() - start_time < 20:
+        while time.perf_counter() - start_time < 25:
             pass
 
         self.completed_flag.set()
