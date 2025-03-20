@@ -56,6 +56,7 @@ class ProductAgent:
         # Flags to help operate through threads
         self.query_flag = threading.Event()
         self.operating_finished = threading.Event()
+        self.operating_finished_2 = threading.Event()
 
         # Main location state
         self.currentLocation = 'printerLocation'
@@ -105,8 +106,11 @@ class ProductAgent:
 
             # When recieves message that the task the RA had gets completed
             if message.decode() == "Task Completed":
-
-                self.operating_finished.set()
+                
+                if (self.operating_finished.is_set ==False):
+                    self.operating_finished.set()
+                elif(self.operating_finished.is_set ==True) and (self.operating_finished_2.is_set ==False):
+                    self.operating_finished_2.set()
                 print('A Task has been completed')
 
     def armTesting(self):
