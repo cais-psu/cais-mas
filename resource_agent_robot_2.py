@@ -13,11 +13,11 @@ from resource_agent import ResourceAgent
 PA_IP = "127.0.0.1"
 PA_PORT = 50501
 
-class RobotArmRA(ResourceAgent):
+class RobotArmRA2(ResourceAgent):
 
     def __init__(self, ra_port : int):
         super().__init__(ra_port)
-        self.robot_ip = "192.168.1.156"
+        self.robot_ip = "192.168.1.240"
         self.arm
 
     
@@ -52,7 +52,7 @@ class RobotArmRA(ResourceAgent):
             
             #Provide ability
             elif "Resource" in data.decode():
-                self.send_msg_to_pa(False,"Robot_Arm")
+                self.send_msg_to_pa(False,"Robot_Arm_2")
 
             #Start Operation
             elif "Operate" in data.decode():
@@ -145,7 +145,7 @@ class RobotArmRA(ResourceAgent):
         print('handling printer to coolout')
 
         #self.arm.set_position(-6.3,298, 273.5,-179.4,-0.3,-0.2)
-        #self.arm.set_position(-6.3,298, 140.5,-179.4,-0.3,-0.2)
+        #elf.arm.set_position(-6.3,298, 140.5,-179.4,-0.3,-0.2)
 
         # Currently some issues with the gripper, movement doesnt work 
         #code = self.arm.set_gripper_mode(0)
@@ -172,7 +172,7 @@ class RobotArmRA(ResourceAgent):
         #self.arm.set_gripper_position(850, speed=500)
 
         #self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2,wait=True)
-        #self.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
+        #elf.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
 
         start_time = time.perf_counter()
 
@@ -257,7 +257,7 @@ class RobotArmRA(ResourceAgent):
     
   
 if __name__ == "__main__":
-    ra = RobotArmRA(50504)
+    ra = RobotArmRA2(50504)
 
         # Keep the script alive **only while idle_flag is set**
     while ra.needed_flag.is_set():

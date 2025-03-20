@@ -28,6 +28,7 @@ from resource_agent import ResourceAgent
 from resource_agent_rolloutbuffer import RolloutBuffer
 from resource_agent_printer import PrinterRA
 from resource_agent_robot import RobotArmRA
+from resource_agent_robot_2 import RobotArmRA2
 from resource_agent_coolout import CooloutBuffer
 
 class ProductAgent:
@@ -66,16 +67,20 @@ class ProductAgent:
         }
 
         #Created a manual or autimatic option to start up the program
-        startUp = input("\tManual(1) or Autimatic (2): ")
-        while startUp != "3":
+        startUp = input("\tManual(1) or Autimatic (2) or MAS Arm testing(3): ")
+        while startUp != "4":
 
             if startUp == "1":
                 self.manual_pa_control()
-                startUp = "3"
+                startUp = "4"
 
             elif startUp == "2":
                 self.autimatic_pa_control()
-                startUp = "3"
+                startUp = "4"
+
+            elif startUp == "3":
+                self.armTesting()
+                startUp = "4"
 
             else:
                 startUp = input("\tManual(1) or Autimatic (2): ")
@@ -103,6 +108,14 @@ class ProductAgent:
 
                 self.operating_finished.set()
                 print('A Task has been completed')
+
+    def armTesting(self):
+        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm']), 'coolingLocation')
+        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm_2']), 'coolingLocation')
+
+        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm']), 'rolloutLocation')
+        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm_2']), 'rolloutLocation')
+        pass
 
     def manual_pa_control(self):
         '''
