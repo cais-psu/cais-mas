@@ -1,6 +1,8 @@
 import socket
 import sys
+import copy
 import time
+import numpy as np
 from threading import Thread
 # Hardware specific libs for the robot
 # See: https://docs.ufactory.cc/xarm_python_sdk/2.-linear-motion
@@ -17,7 +19,7 @@ class RobotArmRA2(ResourceAgent):
 
     def __init__(self, ra_port : int):
         super().__init__(ra_port)
-        self.robot_ip = "192.168.1.240"
+        self.robot_ip = "192.168.1.156"
         self.arm
 
     
@@ -56,15 +58,11 @@ class RobotArmRA2(ResourceAgent):
 
             #Start Operation
             elif "Operate" in data.decode():
-                self.operate('none')
-            
-            ## The place to move 
-            # to cooling location
-            elif 'coolingLocation' in data.decode():
-                self.operate('coolingLocation')
+                self.operate()
 
-            elif 'rolloutLocation' in data.decode():
-                self.operate('rolloutLocation')
+            #Start Operation
+            elif "Finish" in data.decode():
+                self.completed_flag.set()
 
             #Kill the use of the file
             elif "Completed" in data.decode():
@@ -106,123 +104,95 @@ class RobotArmRA2(ResourceAgent):
     # PROCESS FUNCTIONS (HARWARE CONTROL)  #
     #--------------------------------------#
 
-    def operate(self, area):
+    def operate(self):
         "Starts executeTask() in a separate thread if not already running."
 
-        if area == 'coolingLocation':
+        def move_to_pose(command, speed=400, mvacc=1000):
+            pose = command["Pose"]
+            if command["Type"] == "Cartesian":
+                self.arm.set_position(
+                    x=pose[0, 3],
+                    y=pose[1, 3],
+                    z=pose[2, 3],
+                    roll=np.rad2deg(np.arctan2(pose[2, 1], pose[2, 2])),
+                    pitch=np.rad2deg(np.arcsin(-pose[2, 0])),
+                    yaw=np.rad2deg(np.arctan2(pose[1, 0], pose[0, 0])),
+                    speed=speed,
+                    mvacc=mvacc,
+                    wait=True
+                )
+            elif command["Type"] == "Joint":
+                self.arm.set_position_aa(pose, speed = speed, mvacc = mvacc, wait = True, is_radian=False)
+            else: print("Invalid type")
 
-            if not self.running_flag.is_set():
-                self.running_flag.set()
-                self.task_thread = Thread(target=self.handlingPrinterToCoolout, daemon=True)
-                self.task_thread.start()
-            else:
-                print("Task is already running!")
+        # Core function
+        def execute_pick_and_place(pickup_locations, waypoints):
+            standoff = 50
+            for pickup in pickup_locations:
+                #print(pickup)
+                # Step 0: Move above pickup location
+                self.arm.open_lite6_gripper()
+                #move_to_pose(home)
 
-        elif area == 'rolloutLocation':
+                forw = copy.deepcopy(pickup)
+                forw["Pose"][1, 3] += -130
+                forw["Pose"][2, 3] += standoff + 150
+                #move_to_pose(forw)
 
-            if not self.running_flag.is_set():
-                self.running_flag.set()
-                self.task_thread = Thread(target=self.handlingCooloutToRollout, daemon=True)
-                self.task_thread.start()
-            else:
-                print("Task is already running!")
+                above_pickup = copy.deepcopy(pickup)
 
-        else:
+                above_pickup['Pose'][2, 3] += standoff
+                move_to_pose(above_pickup, speed = 200)
 
-            if not self.running_flag.is_set():
-                self.running_flag.set()
-                self.task_thread = Thread(target=self.operate, daemon=True)
-                self.task_thread.start()
-            else:
-                print("Task is already running!")
+                #Step 1: Go to pickup
+                move_to_pose(pickup)
 
-        pass
+                # Step 2: Close gripper
+                self.arm.close_lite6_gripper()  # Adjust as needed for your gripper
+                time.sleep(.4)
+                # Step 3: Translate up 30mm
+                above_pickup = copy.deepcopy(pickup)
+                above_pickup["Pose"][2, 3] += standoff
+                move_to_pose(above_pickup)
+                # Step 3.5: Translate forwards
 
-    def handlingPrinterToCoolout(self):
-        
-        self.running_flag.set()
-        self.idle_flag.clear()
-        print('handling printer to coolout')
+                move_to_pose(forw)
+                # Step 4: Move to waypoints
+                for waypoint in waypoints:
+                    move_to_pose(waypoint, speed=150)
 
-        #self.arm.set_position(-6.3,298, 273.5,-179.4,-0.3,-0.2)
-        #elf.arm.set_position(-6.3,298, 140.5,-179.4,-0.3,-0.2)
+                #move_to_pose(forw, speed=150)
+                # Step 5: Return to 30mm above pickup location
+                move_to_pose(above_pickup, speed=150)
 
-        # Currently some issues with the gripper, movement doesnt work 
-        #code = self.arm.set_gripper_mode(0)
-        #rint('set gripper mode: location mode, code={}'.format(code))
-        #code= self.arm.set_gripper_enable(True)
-        #print('set gripper enable, code={}'.format(code))
-        #self.arm.set_gripper_position(0, speed=500)
-        time.sleep(3)
-        self.arm.close_lite6_gripper()
-        time.sleep(5)
+                # Step 6: Return to pickup location
+                move_to_pose(pickup)
 
-        #self.arm.set_position(-6.3,300.6, 273.5,-179.4,-0.3,-0.2)
-        #self.arm.set_position(211.2,127.6, 272.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(399.2,-55.1, 73,-179.4,-0.3,-0.2,wait=True)
+                # Step 7: Open gripper
+                self.arm.open_lite6_gripper()  # Adjust as needed for your gripper
+                time.sleep(0.4)
+                # Step 8: Move 50mm up to clear location
+                clear_pickup = copy.deepcopy(pickup)
+                clear_pickup["Pose"][2, 3] += standoff
+                move_to_pose(clear_pickup)
 
-        time.sleep(3)
-        self.arm.open_lite6_gripper()
-        time.sleep(3)
-        #code = self.arm.set_gripper_mode(0)
-        #print('set gripper mode: location mode, code={}'.format(code))
-        #code= self.arm.set_gripper_enable(True)
-        #print('set gripper enable, code={}'.format(code))
-        #self.arm.set_gripper_position(850, speed=500)
+        # Example usage (fill in with actual data)
+        home = {"Type": "Joint", "Pose": np.array([-27.9, 36.3, 74, 0.1, 37.7, -28]) * np.pi / 180}
+        pickup_locations = [{"Type": "Cartesian", "Pose": np.array([[0, -1, 0, 250], [-1, 0, 0, -105], [0, 0, -1, 82], [0, 0, 0, 1]])},
+                            {"Type": "Cartesian", "Pose": np.array([[0, -1, 0, -200], [-1, 0, 0, -105], [0, 0, -1, 82], [0, 0, 0, 1]])}]  # List of 4x4 transform matrices for pickup locations
+        waypoints = [{"Type": "Cartesian", "Pose": np.array([[ 6.00e-02,-8.20e-01,-5.70e-01,-2.43e+02],
+        [ 6.00e-02, 5.80e-01,-8.20e-01,-2.62e+02],
+        [ 1.00e+00, 1.00e-02, 8.00e-02, 3.29e+02],
+        [ 0.00e+00, 0.00e+00, 0.00e+00, 1.00e+00]])},{"Type": "Cartesian", "Pose": np.array([[-5.00e-02,-8.80e-01, 4.70e-01, 150],
+        [ 1.20e-01,-4.70e-01,-8.80e-01,-275],
+        [ 9.90e-01, 1.00e-02, 1.30e-01, 3.04e+02],
+        [ 0.00e+00, 0.00e+00, 0.00e+00, 1.00e+00]])}]
 
-        #self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2,wait=True)
-        #elf.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
+        #waypoints = [{"Type": "Joint", "Pose": np.array([-31.6, -2.5, 48.5, 14.8, -41.1, 11.8])},
+                    #{"Type": "Joint", "Pose": np.array([31.6, -2.5, 48.5, 14.8, -41.1, 11.8])}]
+        while self.completed_flag.is_set()==False:
+            execute_pick_and_place(pickup_locations, waypoints)
 
-        start_time = time.perf_counter()
-
-        while time.perf_counter() - start_time < 10:
-            pass
-
-        self.completed_flag.set()
-        pass
-
-    def handlingCooloutToRollout(self):
-        
-        self.running_flag.set()
-        self.idle_flag.clear()
-        print('handling coolout to rollout')
- 
-        #self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(399.2,-55.1, 70,-179.4,-0.3,-0.2)
-
-        time.sleep(3)
-        self.arm.close_lite6_gripper()
-        time.sleep(2)
-        #code = self.arm.set_gripper_mode(0)
-        #rint('set gripper mode: location mode, code={}'.format(code))
-        #code= self.arm.set_gripper_enable(True)
-        #print('set gripper enable, code={}'.format(code))
-        #self.arm.set_gripper_position(0, speed=500)
-        
-        #self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(315,-256.9, 299.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(100.8,-362.8, 299.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(100.8,-362.8, 73,-179.4,-0.3,-0.2)
-
-        time.sleep(3)
-        self.arm.open_lite6_gripper()
-        time.sleep(3)
-        #code = self.arm.set_gripper_mode(0)
-        #print('set gripper mode: location mode, code={}'.format(code))
-        #code= self.arm.set_gripper_enable(True)
-        #print('set gripper enable, code={}'.format(code))
-        #self.arm.set_gripper_position(850, speed=500)
-
-        #self.arm.set_position(100.8,-362.8, 299.2,-179.4,-0.3,-0.2)
-        #self.arm.set_position(250, -150, 400, 180.0, 0.0, 0.0)
-
-        start_time = time.perf_counter()
-
-        while time.perf_counter() - start_time < 10:
-            pass
-
-        self.completed_flag.set()
         pass
 
     def executeTask(self):
@@ -235,29 +205,8 @@ class RobotArmRA2(ResourceAgent):
         self.completed_flag.set()
         pass
 
-    def move_process(self,location):
-        # Position is (x,y,z,roll, pitch, yaw) in units [mm] and [deg]
-        
-        '''
-        commented out due to library problem
-        '''
-        #self.arm.set_position(0,300, 350,180,0,0)
-        #self.arm.set_position(300,0,250,180,0,0) 
-
-        # Currently some issues with the gripper, movement doesnt work 
-        #code = self.arm.set_gripper_mode(0)
-        #print('set gripper mode: location mode, code={}'.format(code))
-        #code= self.arm.set_gripper_enable(True)
-        #print('set gripper enable, code={}'.format(code))
-        #self.arm.set_gripper_speed(1000)
-        #self.arm.set_gripper_position(550, wait=True)
-        
-        # Add more motions ...
-        pass
-    
-  
 if __name__ == "__main__":
-    ra = RobotArmRA2(50504)
+    ra = RobotArmRA2(50506)
 
         # Keep the script alive **only while idle_flag is set**
     while ra.needed_flag.is_set():

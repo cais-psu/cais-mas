@@ -9,10 +9,11 @@ from threading import Thread
 #from printrun.eventhandler import PrinterEventHandler
 
 #Imports for printer control
+'''
 from printrun.printcore import printcore
 from printrun import gcoder
 from printrun.eventhandler import PrinterEventHandler
-
+'''
 from resource_agent import ResourceAgent
 
 
@@ -62,6 +63,7 @@ class PrinterRA(ResourceAgent):
         commented out to help with the testing
         '''
 
+        '''
         self.printer = printcore(port='COM3', baud=115200)
         # Check the event handler implementation to get status / read back from printer in general
         myHandler = PrinterEventHandler()
@@ -69,6 +71,7 @@ class PrinterRA(ResourceAgent):
         while not self.printer.online:
             time.sleep(0.1)
         self.ra_udp_client_socket.sendto("Printer ready".encode(), self.pa_udp_server_address)
+        '''
 
         pass
         
@@ -87,7 +90,7 @@ class PrinterRA(ResourceAgent):
         print('print action')
         start_time = time.perf_counter()
 
-
+        '''
         self.printer = printcore(port='COM3', baud=115200)
         myHandler = PrinterEventHandler()
         self.printer.addEventHandler(myHandler)
@@ -100,7 +103,7 @@ class PrinterRA(ResourceAgent):
         gcode=[i.strip() for i in open('cut_box_0.3mm_PLA_MK3S_16m.gcode')] # or pass in your own array of gcode lines instead of reading from a file
         gcode = gcoder.LightGCode(gcode)
         self.printer.startprint(gcode) # this will start a print     
-
+        '''
 
         while time.perf_counter() - start_time < 1150:
             pass

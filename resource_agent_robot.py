@@ -17,7 +17,7 @@ class RobotArmRA(ResourceAgent):
 
     def __init__(self, ra_port : int):
         super().__init__(ra_port)
-        self.robot_ip = "192.168.1.156"
+        self.robot_ip = "192.168.1.240"
         self.arm
 
     
@@ -75,7 +75,7 @@ class RobotArmRA(ResourceAgent):
     # Robot specific setup functions:
     def setup_robot_connection(self):
         
-        self.arm = XArmAPI('192.168.1.156', baud_checkset=False)
+        self.arm = XArmAPI('192.168.1.240', baud_checkset=False)
 
         self.params = {
             'grip_speed': 800,
@@ -177,7 +177,13 @@ class RobotArmRA(ResourceAgent):
         start_time = time.perf_counter()
 
         while time.perf_counter() - start_time < 10:
+            self.arm.close_lite6_gripper()
+            time.sleep(1)
+            self.arm.open_lite6_gripper()
+            time.sleep(1)
             pass
+
+        time.sleep(3)
 
         self.completed_flag.set()
         pass

@@ -109,16 +109,25 @@ class ProductAgent:
                 
                 if (self.operating_finished.is_set ==False):
                     self.operating_finished.set()
-                elif(self.operating_finished.is_set ==True) and (self.operating_finished_2.is_set ==False):
+
+                elif((self.operating_finished.is_set ==True) and (self.operating_finished_2.is_set ==False)):
                     self.operating_finished_2.set()
                 print('A Task has been completed')
 
     def armTesting(self):
-        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm']), 'coolingLocation')
-        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm_2']), 'coolingLocation')
+                # querys the resource available from the different RAs
+        for i in range(len(self.ra_list)):
+            #sets flag saying currently gethering this information
+            self.query_flag.set()
+            # queries the resource adds a buffer and then clears the query flag
+            self.queryResource(i)
+            start_time = time.perf_counter()
 
-        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm']), 'rolloutLocation')
-        self.robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm_2']), 'rolloutLocation')
+            while time.perf_counter() - start_time < 1:
+                pass
+            self.query_flag.clear()
+
+        self.two_robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm']),self.ra_list.index(self.ra_resource_dic['Robot_Arm_2']), 'coolingLocation')
         pass
 
     def manual_pa_control(self):
@@ -299,6 +308,36 @@ class ProductAgent:
 
             self.queryStatus(robotRA)
 
+
+        print('Move Action has ended')
+
+        pass
+
+    def two_robot_arm_movement(self,robotRA1, robotRA2, newLocation):
+        '''
+        Robot arm operation
+        Hard coded before every action as not currently in any transition tasks
+        '''
+        print('Move action started to')
+        print(newLocation)
+
+        # Sends the task to the required RA
+        self.sendTaskToRobot(robotRA1, newLocation)
+        self.sendTaskToRA(robotRA2)
+
+        # Waits for the Operating flag to clear when requesting status, so continually asks until changed
+        while self.operating_finished.is_set() == False:
+            start_time = time.perf_counter()
+
+            while time.perf_counter() - start_time < 1:
+                pass
+
+            self.queryStatus(robotRA1)
+            self.queryStatus(robotRA2)
+
+        if self.operating_finished.is_set() == True:
+            self.sendFinishToRA(robotRA2)
+
         print('Move Action has ended')
 
         pass
@@ -314,6 +353,15 @@ class ProductAgent:
         # sets operating flag to wait for other methods to wait on it
         self.operating_finished.clear()
         message = "Operate"
+        self.pa_udp_server_socket.sendto(message.encode(), self.ra_list[int(agentID)])
+        pass
+    
+    def sendFinishToRA(self,agentID):
+        """
+        sends start task message to RA
+        """
+        # sets operating flag to wait for other methods to wait on it
+        message = "Finish"
         self.pa_udp_server_socket.sendto(message.encode(), self.ra_list[int(agentID)])
         pass
 
