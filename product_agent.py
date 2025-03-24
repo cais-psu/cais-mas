@@ -106,11 +106,13 @@ class ProductAgent:
 
             # When recieves message that the task the RA had gets completed
             if message.decode() == "Task Completed":
-                
-                if (self.operating_finished.is_set ==False):
+                print('Finishing')
+                if (self.operating_finished.is_set ==False):    
+                    print('finishing part 1')
                     self.operating_finished.set()
 
                 elif((self.operating_finished.is_set ==True) and (self.operating_finished_2.is_set ==False)):
+                    print('finishing part 2')
                     self.operating_finished_2.set()
                 print('A Task has been completed')
 
@@ -331,12 +333,15 @@ class ProductAgent:
 
             while time.perf_counter() - start_time < 1:
                 pass
-
+            
+            print('checking 1')
             self.queryStatus(robotRA1)
+
+            print('checking 2')
             self.queryStatus(robotRA2)
 
-        if self.operating_finished.is_set() == True:
-            self.sendFinishToRA(robotRA2)
+            if self.operating_finished.is_set() == True:
+                self.sendFinishToRA(robotRA2)
 
         print('Move Action has ended')
 

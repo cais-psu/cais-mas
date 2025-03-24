@@ -108,10 +108,11 @@ class RobotArmRA(ResourceAgent):
 
     def operate(self, area):
         "Starts executeTask() in a separate thread if not already running."
-
+        print('Got task')
         if area == 'coolingLocation':
 
             if not self.running_flag.is_set():
+                print('Starting task')
                 self.running_flag.set()
                 self.task_thread = Thread(target=self.handlingPrinterToCoolout, daemon=True)
                 self.task_thread.start()
@@ -153,18 +154,14 @@ class RobotArmRA(ResourceAgent):
         #code= self.arm.set_gripper_enable(True)
         #print('set gripper enable, code={}'.format(code))
         #self.arm.set_gripper_position(0, speed=500)
-        time.sleep(3)
         self.arm.close_lite6_gripper()
-        time.sleep(5)
 
         #self.arm.set_position(-6.3,300.6, 273.5,-179.4,-0.3,-0.2)
         #self.arm.set_position(211.2,127.6, 272.2,-179.4,-0.3,-0.2)
         #self.arm.set_position(399.2,-55.1, 272.2,-179.4,-0.3,-0.2)
         #self.arm.set_position(399.2,-55.1, 73,-179.4,-0.3,-0.2,wait=True)
-
-        time.sleep(3)
         self.arm.open_lite6_gripper()
-        time.sleep(3)
+        
         #code = self.arm.set_gripper_mode(0)
         #print('set gripper mode: location mode, code={}'.format(code))
         #code= self.arm.set_gripper_enable(True)
@@ -177,13 +174,13 @@ class RobotArmRA(ResourceAgent):
         start_time = time.perf_counter()
 
         while time.perf_counter() - start_time < 10:
-            self.arm.close_lite6_gripper()
-            time.sleep(1)
-            self.arm.open_lite6_gripper()
-            time.sleep(1)
+            self.arm.set_position(x=250, y=-150, z=400, roll=180.0, pitch=0.0, yaw=0.0, 
+                              speed=self.params['speed'], mvacc=self.params['acc'], 
+                              radius=self.params['radius'], wait=True)
+            self.arm.set_position(x=200, y=-150, z=400, roll=180.0, pitch=0.0, yaw=0.0, 
+                              speed=self.params['speed'], mvacc=self.params['acc'], 
+                              radius=self.params['radius'], wait=True)
             pass
-
-        time.sleep(3)
 
         self.completed_flag.set()
         pass

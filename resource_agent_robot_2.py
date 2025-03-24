@@ -62,6 +62,7 @@ class RobotArmRA2(ResourceAgent):
 
             #Start Operation
             elif "Finish" in data.decode():
+                print('get finish')
                 self.completed_flag.set()
 
             #Kill the use of the file
@@ -105,7 +106,22 @@ class RobotArmRA2(ResourceAgent):
     #--------------------------------------#
 
     def operate(self):
+
+        print('Got task')
+        if not self.running_flag.is_set():
+            print('Starting task')
+            self.running_flag.set()
+            self.task_thread = Thread(target=self.executeTask, daemon=True)
+            self.task_thread.start()
+        else:
+            print("Task is already running!")
+
+        pass
+
+    def executeTask(self):
         "Starts executeTask() in a separate thread if not already running."
+
+        print('executing')
 
         def move_to_pose(command, speed=400, mvacc=1000):
             pose = command["Pose"]
@@ -190,19 +206,11 @@ class RobotArmRA2(ResourceAgent):
 
         #waypoints = [{"Type": "Joint", "Pose": np.array([-31.6, -2.5, 48.5, 14.8, -41.1, 11.8])},
                     #{"Type": "Joint", "Pose": np.array([31.6, -2.5, 48.5, 14.8, -41.1, 11.8])}]
+
         while self.completed_flag.is_set()==False:
+            print('self completed flag: ')
+            print(self.completed_flag.is_set())
             execute_pick_and_place(pickup_locations, waypoints)
-
-        pass
-
-    def executeTask(self):
-        self.idle_flag.clear()
-        self.running_flag.set()
-        start_time = time.perf_counter()
-
-        while time.perf_counter() - start_time < 5:
-            pass
-        self.completed_flag.set()
         pass
 
 if __name__ == "__main__":
