@@ -32,7 +32,9 @@ from resource_agent_robot_2 import RobotArmRA2
 from resource_agent_coolout import CooloutBuffer
 
 class ProductAgent:
-
+    '''
+    Initialization of the product agent
+    '''
     def __init__(self):
 
         # Port Set Up
@@ -67,6 +69,9 @@ class ProductAgent:
             'Rollout_1': 'rolloutLocation'
         }
 
+        '''
+        Mode control
+        '''
         #Created a manual or autimatic option to start up the program
         startUp = input("\tManual(1) or Autimatic (2) or MAS Arm testing(3): ")
         while startUp != "4":
@@ -86,7 +91,9 @@ class ProductAgent:
             else:
                 startUp = input("\tManual(1) or Autimatic (2): ")
 
-
+    '''
+    Processing messages from RA's
+    '''
     def process_ra_messages(self):
         while True:
             # recieves message
@@ -132,10 +139,10 @@ class ProductAgent:
         self.two_robot_arm_movement(self.ra_list.index(self.ra_resource_dic['Robot_Arm']),self.ra_list.index(self.ra_resource_dic['Robot_Arm_2']), 'coolingLocation')
         pass
 
+    '''
+    Manual use of the product agent
+    '''
     def manual_pa_control(self):
-        '''
-        Manual use of the product agent
-        '''
 
         while True:
             user_pa_control_cmd = input("[PA-Cmd] Input pa cmd: ")
@@ -157,10 +164,10 @@ class ProductAgent:
                 self.pa_udp_server_socket.sendto(message.encode(), self.ra_list[int(agent_id)-1])
             print(user_pa_control_cmd)
 
+    """
+    Autimatic process used to create the connections for testing purposes
+    """
     def autimatic_pa_control(self):
-        """
-        Autimatic process used to create the connections for testing purposes
-        """
         #created different agents for testing purposes
         # Time buffer
         start_time = time.perf_counter()
@@ -172,10 +179,10 @@ class ProductAgent:
         self.operate("C:/Users/zekam/Documents/PennStateAgentSystem/spec_1.json")
         pass            
 
+    """
+    Go through a .json file and retrieve all the states and transitions to go through the required operations for the product agents
+    """
     def operate(self, directory):
-        """
-        Go through a .json file and retrieve all the states and transitions to go through the required operations for the product agents
-        """
 
         # Read the file and store the different states and transitions
         with open(directory, "r") as file:
@@ -190,7 +197,7 @@ class ProductAgent:
             if props["initialState"]:
                 current_state = state
                 break
-
+        
         
         
         '''
@@ -334,13 +341,10 @@ class ProductAgent:
             while time.perf_counter() - start_time < 1:
                 pass
             
-            print('checking 1')
-            self.queryStatus(robotRA1)
+            print('checking for operation')
+            print(self.operating_finished.is_set())
 
-            print('checking 2')
-            self.queryStatus(robotRA2)
-
-            if self.operating_finished.is_set() == True:
+            if self.operating_finished_2.is_set() == True:
                 self.sendFinishToRA(robotRA2)
 
         print('Move Action has ended')
@@ -366,6 +370,7 @@ class ProductAgent:
         sends start task message to RA
         """
         # sets operating flag to wait for other methods to wait on it
+        print('send to finish wors!')
         message = "Finish"
         self.pa_udp_server_socket.sendto(message.encode(), self.ra_list[int(agentID)])
         pass
